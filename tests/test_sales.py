@@ -74,11 +74,12 @@ class FakeSaleService:
         return self._sales.get(sale_id)
 
 
-def setup_module():
+def setup_module() -> None:
     global fake_product_service, fake_sale_service
     fake_product_service = FakeProductService()
     fake_sale_service = FakeSaleService(fake_product_service)
-    app.dependency_overrides[get_product_service] = lambda: fake_product_service
+    app.dependency_overrides[
+        get_product_service] = lambda: fake_product_service
     app.dependency_overrides[get_sale_service] = lambda: fake_sale_service
 
 
@@ -107,7 +108,7 @@ def auth_headers(email: str, role: str):
     return {"Authorization": f"Bearer {response.json()['access_token']}"}
 
 
-def test_create_sale_success():
+def test_create_sale_success() -> None:
     # create product
     supervisor = auth_headers("sale-supervisor@example.com", "supervisor")
     user = auth_headers("sale-user@example.com", "user")
@@ -124,7 +125,7 @@ def test_create_sale_success():
     assert body["quantity"] == 3
 
 
-def test_create_sale_insufficient_stock():
+def test_create_sale_insufficient_stock() -> None:
     # product 1 now has 7 left from previous test
     user = auth_headers("sale-user-2@example.com", "user")
     resp = client.post(
@@ -133,7 +134,7 @@ def test_create_sale_insufficient_stock():
     assert resp.status_code == 400
 
 
-def test_create_sale_product_not_found():
+def test_create_sale_product_not_found() -> None:
     user = auth_headers("sale-user-3@example.com", "user")
     resp = client.post(
         "/sales/", json={"product_id": 9999, "quantity": 1}, headers=user
@@ -141,7 +142,7 @@ def test_create_sale_product_not_found():
     assert resp.status_code == 400
 
 
-def test_get_all_sales():
+def test_get_all_sales() -> None:
     user = auth_headers("sale-user-4@example.com", "user")
     resp = client.get("/sales/", headers=user)
     assert resp.status_code == 200
@@ -149,7 +150,7 @@ def test_get_all_sales():
     assert isinstance(arr, list)
 
 
-def test_get_missing_sale_returns_404():
+def test_get_missing_sale_returns_404() -> None:
     user = auth_headers("sale-user-5@example.com", "user")
     resp = client.get("/sales/9999", headers=user)
     assert resp.status_code == 404

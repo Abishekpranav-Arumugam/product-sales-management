@@ -41,7 +41,7 @@ class FakeProductService:
         return False
 
 
-def setup_module():
+def setup_module() -> None:
     # install dependency override once per module
     global fake_service
     fake_service = FakeProductService()
@@ -73,7 +73,7 @@ def supervisor_headers():
     return {"Authorization": f"Bearer {response.json()['access_token']}"}
 
 
-def test_create_and_get_product():
+def test_create_and_get_product() -> None:
     headers = supervisor_headers()
     resp = client.post(
         "/products/", json=make_product_payload(), headers=headers)
@@ -87,7 +87,7 @@ def test_create_and_get_product():
     assert get_resp.json()["id"] == 1
 
 
-def test_get_all_products_contains_created():
+def test_get_all_products_contains_created() -> None:
     resp = client.get("/products/", headers=supervisor_headers())
     assert resp.status_code == 200
     arr = resp.json()
@@ -95,7 +95,7 @@ def test_get_all_products_contains_created():
     assert any(p["id"] == 1 for p in arr)
 
 
-def test_update_product():
+def test_update_product() -> None:
     payload = make_product_payload()
     payload["name"] = "Updated"
     resp = client.put("/products/1", json=payload,
@@ -104,13 +104,13 @@ def test_update_product():
     assert resp.json()["name"] == "Updated"
 
 
-def test_delete_product():
+def test_delete_product() -> None:
     resp = client.delete("/products/1", headers=supervisor_headers())
     assert resp.status_code == 200
     body = resp.json()
     assert body["product_id"] == 1
 
 
-def test_get_missing_product_returns_404():
+def test_get_missing_product_returns_404() -> None:
     resp = client.get("/products/9999", headers=supervisor_headers())
     assert resp.status_code == 404

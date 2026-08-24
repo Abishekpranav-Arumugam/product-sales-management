@@ -1,8 +1,4 @@
-import os
-
 from app.service.auth_service import AuthService
-from app.service.database_service import database_service
-from app.dal.user_dal import UserDAL
 
 
 class DummyDB:
@@ -20,14 +16,16 @@ class DummyDB:
         pass
 
 
-def test_hash_and_verify_password_round_trip():
-    service = AuthService() # Arrange
-    hashed, salt = service._hash_password("secret123") # act
-    assert service._verify_password("secret123", hashed, salt) is True #assertion
-    assert service._verify_password("wrongpass", hashed, salt) is False #assertion
+def test_hash_and_verify_password_round_trip() -> None:
+    service = AuthService()  # Arrange
+    hashed, salt = service._hash_password("secret123")  # act
+    assert service._verify_password(
+        "secret123", hashed, salt) is True  # assertion
+    assert service._verify_password(
+        "wrongpass", hashed, salt) is False  # assertion
 
 
-def test_create_user_rejects_duplicate_email(monkeypatch):
+def test_create_user_rejects_duplicate_email(monkeypatch) -> None:
     service = AuthService()
 
     class FakeUserDAL:
@@ -38,7 +36,8 @@ def test_create_user_rejects_duplicate_email(monkeypatch):
             return object()
 
         def insert(self, user_data):
-            raise AssertionError("insert should not be called for duplicate email")
+            raise AssertionError(
+                "insert should not be called for duplicate email")
 
     monkeypatch.setattr("app.service.auth_service.UserDAL", FakeUserDAL)
 
@@ -49,7 +48,7 @@ def test_create_user_rejects_duplicate_email(monkeypatch):
         assert str(exc) == "Email already exists"
 
 
-def test_authenticate_user_success_and_failure(monkeypatch):
+def test_authenticate_user_success_and_failure(monkeypatch) -> None:
     service = AuthService()
     email = "auth@example.com"
     pwd = "secret123"
@@ -75,7 +74,7 @@ def test_authenticate_user_success_and_failure(monkeypatch):
     assert service.authenticate_user("missing@example.com", pwd) is None
 
 
-def test_create_token_and_get_user_from_token(monkeypatch):
+def test_create_token_and_get_user_from_token(monkeypatch) -> None:
     service = AuthService()
     payload = {"sub": "jwt@example.com", "user_id": 7}
 
@@ -84,7 +83,10 @@ def test_create_token_and_get_user_from_token(monkeypatch):
         def decode(token):
             return payload
 
-    monkeypatch.setattr("app.service.auth_service.jwt_util.decode_access_token", lambda token: payload)
+    monkeypatch.setattr(
+        "app.service.auth_service.jwt_util.decode_access_token",
+        lambda token: payload
+    )
 
     class FakeUserDAL:
         def __init__(self, db):

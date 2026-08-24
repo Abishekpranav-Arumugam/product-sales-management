@@ -5,7 +5,7 @@ from app.dal.user_dal import UserDAL
 from app.models.base import Base
 
 
-def setup_module():
+def setup_module() -> None:
     global engine, SessionLocal
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(bind=engine)
@@ -17,11 +17,12 @@ def setup_module():
     )
 
 
-def test_user_dal_crud():
+def test_user_dal_crud() -> None:
     db = SessionLocal()
     dal = UserDAL(db)
 
-    user = dal.insert({"email": "user@example.com", "hashed_password": "salt$hash"})
+    user = dal.insert({"email": "user@example.com",
+                      "hashed_password": "salt$hash"})
     assert user.id == 1
     assert user.email == "user@example.com"
 

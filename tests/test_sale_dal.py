@@ -16,7 +16,7 @@ def _make_product_data():
     }
 
 
-def setup_module():
+def setup_module() -> None:
     global engine, SessionLocal
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(bind=engine)
@@ -25,7 +25,7 @@ def setup_module():
     )
 
 
-def test_sale_dal_insert_and_get():
+def test_sale_dal_insert_and_get() -> None:
     db = SessionLocal()
     p_dal = ProductDAL(db)
     s_dal = SaleDAL(db)
@@ -33,7 +33,8 @@ def test_sale_dal_insert_and_get():
     p = p_dal.insert(_make_product_data())
     db.commit()
 
-    sale = s_dal.insert({"product_id": p.id, "quantity": 2, "total_amount": 20.0})
+    sale = s_dal.insert(
+        {"product_id": p.id, "quantity": 2, "total_amount": 20.0})
     assert sale.id == 1
     assert sale.product_id == p.id
     assert sale.product.id == p.id

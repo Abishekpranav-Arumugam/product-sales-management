@@ -14,7 +14,7 @@ repos:
     hooks:
       - id: pytest-coverage
         name: Pytest Coverage (minimum 80%)
-        entry: python -m pytest tests/ --cov=. --cov-report=term-missing --cov-fail-under=80
+        entry: python -m pytest tests/ --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=80
         language: system
         pass_filenames: false
         always_run: true

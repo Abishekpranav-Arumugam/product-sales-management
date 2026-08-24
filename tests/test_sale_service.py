@@ -7,7 +7,7 @@ from app.service.product_service import ProductService
 from app.service.database_service import database_service
 
 
-def setup_module():
+def setup_module() -> None:
     global engine, SessionLocal
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(bind=engine)
@@ -16,13 +16,14 @@ def setup_module():
     )
 
 
-def test_sale_service_create_and_errors():
+def test_sale_service_create_and_errors() -> None:
     orig = database_service.create_session
     database_service.create_session = lambda: SessionLocal()
 
     psvc = ProductService()
     prod = psvc.add_product(
-        {"name": "SP", "description": "d", "price": 5.0, "quantity": 2, "category": "c"}
+        {"name": "SP", "description": "d", "price": 5.0,
+            "quantity": 2, "category": "c"}
     )
 
     ssvc = SaleService()

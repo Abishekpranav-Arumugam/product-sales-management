@@ -7,7 +7,7 @@ from app.security.jwt import create_access_token, decode_access_token
 client = TestClient(app)
 
 
-def test_jwt_round_trip():
+def test_jwt_round_trip() -> None:
     token = create_access_token({"sub": "alice@example.com", "user_id": 42})
     payload = decode_access_token(token)
     assert payload is not None
@@ -15,7 +15,7 @@ def test_jwt_round_trip():
     assert payload["user_id"] == 42
 
 
-def test_register_and_login_endpoints():
+def test_register_and_login_endpoints() -> None:
     payload = {
         "email": "alice@example.com",
         "password": "Secret123@",
@@ -37,7 +37,7 @@ def test_register_and_login_endpoints():
     assert "access_token" in login_data
 
 
-def test_token_endpoint_and_invalid_login():
+def test_token_endpoint_and_invalid_login() -> None:
     payload = {"email": "bob@example.com", "password": "Secret456#"}
 
     register_response = client.post("/auth/register", json=payload)
@@ -54,7 +54,7 @@ def test_token_endpoint_and_invalid_login():
     assert bad_login.status_code == 401
 
 
-def test_auth_rejects_duplicate_and_missing_token():
+def test_auth_rejects_duplicate_and_missing_token() -> None:
     payload = {"email": "charlie@example.com", "password": "Secret789#"}
 
     first = client.post("/auth/register", json=payload)
@@ -67,7 +67,7 @@ def test_auth_rejects_duplicate_and_missing_token():
     assert me_without_token.status_code == 401
 
 
-def test_me_accepts_valid_token_and_rejects_bad_token():
+def test_me_accepts_valid_token_and_rejects_bad_token() -> None:
     payload = {"email": "dora@example.com", "password": "Secret000#"}
     register_response = client.post("/auth/register", json=payload)
     assert register_response.status_code == 200
@@ -87,7 +87,7 @@ def test_me_accepts_valid_token_and_rejects_bad_token():
     assert bad_response.status_code == 401
 
 
-def test_role_based_endpoint_access():
+def test_role_based_endpoint_access() -> None:
     user = client.post(
         "/auth/register",
         json={
@@ -114,5 +114,6 @@ def test_role_based_endpoint_access():
     assert client.get("/sales/").status_code == 401
     assert client.get("/products/", headers=user_headers).status_code == 403
     assert client.get("/sales/", headers=user_headers).status_code == 200
-    assert client.get("/products/", headers=supervisor_headers).status_code == 200
+    assert client.get(
+        "/products/", headers=supervisor_headers).status_code == 200
     assert client.get("/sales/", headers=supervisor_headers).status_code == 200

@@ -16,7 +16,7 @@ def _make_product_data(i=1):
     }
 
 
-def setup_module():
+def setup_module() -> None:
     global engine, SessionLocal
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(bind=engine)
@@ -25,7 +25,7 @@ def setup_module():
     )
 
 
-def test_product_dal_crud():
+def test_product_dal_crud() -> None:
     db = SessionLocal()
     dal = ProductDAL(db)
 
