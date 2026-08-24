@@ -1,0 +1,20 @@
+repos:
+  - repo: https://github.com/pycqa/flake8
+    rev: '7.0.0'
+    hooks:
+      - id: flake8
+        name: Flake8
+
+  - repo: https://github.com/hhatto/autopep8
+    rev: 'v2.1.0'
+    hooks:
+      - id: autopep8
+
+  - repo: local
+    hooks:
+      - id: pytest-coverage
+        name: Pytest Coverage (minimum 80%)
+        entry: python -m pytest tests/ --cov=. --cov-report=term-missing --cov-fail-under=80
+        language: system
+        pass_filenames: false
+        always_run: true
