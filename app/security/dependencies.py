@@ -1,3 +1,4 @@
+from typing import Any
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -8,7 +9,7 @@ security = HTTPBearer(auto_error=False)
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
-):
+) -> Any:
     if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -27,12 +28,18 @@ def get_current_user(
     return user
 
 
-def require_authenticated_user(current_user=Depends(get_current_user)): #get_current_user(validates the token and user)
+# get_current_user(validates the token and user)
+def require_authenticated_user(
+    current_user: Any = Depends(get_current_user)
+) -> Any:
     return current_user
 
 
-def require_supervisor(current_user=Depends(get_current_user)):
-    if current_user.role != "supervisor": # checks the role and allows only the supervisor
+def require_supervisor(
+    current_user: Any = Depends(get_current_user)
+) -> Any:
+    if current_user.role != "supervisor":
+        # checks the role and allows only the supervisor
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Supervisor access required",

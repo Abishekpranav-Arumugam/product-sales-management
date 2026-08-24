@@ -11,8 +11,10 @@ JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
 
 def create_access_token(payload: dict[str, Any]) -> str:
     token_payload = dict(payload)
-    token_payload["exp"] = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)#expiration time
-    token_payload["iat"] = datetime.now(timezone.utc) #issued at time
+    token_payload["exp"] = datetime.now(
+        # expiration time
+        timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)
+    token_payload["iat"] = datetime.now(timezone.utc)  # issued at time
     return jwt.encode(token_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 

@@ -6,9 +6,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.models.base import Base
-from app.models.product_model import Product
-from app.models.sale_model import Sale
-from app.models.user_model import User
+from app.models.product_model import Product  # noqa: F401
+from app.models.sale_model import Sale  # noqa: F401
+from app.models.user_model import User  # noqa: F401
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -23,14 +23,14 @@ class DatabaseManager:
 
     _instance = None
 
-    def __new__(cls):
+    def __new__(cls) -> "DatabaseManager":
         if cls._instance is None:
             print("Creating DatabaseManager Singleton Instance")
             cls._instance = super().__new__(cls)
             cls._instance.initialize_database()
         return cls._instance
 
-    def initialize_database(self):
+    def initialize_database(self) -> None:
 
         app_env = os.getenv("APP_ENV")
         driver = os.getenv("DB_DRIVER")
@@ -58,15 +58,10 @@ class DatabaseManager:
 
         if missing_variables:
             raise RuntimeError(
-                f"Missing environment variables: {
-                    ', '.join(missing_variables)}"
+                f"Missing environment variables: {', '.join(missing_variables)}"
             )
 
         if app_env and app_env.lower() == "test":
-            # Use a shared in-memory SQLite database during tests so that
-            # the metadata.create_all() call and test-session connections
-            # see the same database. StaticPool + check_same_thread=False
-            # keeps a single connection that all sessions reuse.
             database_url = "sqlite:///:memory:"
 
             self.engine = create_engine(
@@ -102,9 +97,10 @@ class DatabaseManager:
         Base.metadata.create_all(bind=self.engine)
         self._ensure_user_role_column()
 
-    def _ensure_user_role_column(self):
+    def _ensure_user_role_column(self) -> None:
         user_columns = {
-            column["name"] for column in inspect(self.engine).get_columns("users")
+            column["name"]
+            for column in inspect(self.engine).get_columns("users")
         }
         if "role" in user_columns:
             return

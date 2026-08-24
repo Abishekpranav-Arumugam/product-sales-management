@@ -1,16 +1,16 @@
 import os
 
-os.environ.setdefault("APP_ENV", "test")
-os.environ.setdefault("DB_DRIVER", "sqlite")
-os.environ.setdefault("DB_NAME", ":memory:")
-os.environ.setdefault("JWT_SECRET", "test-secret-key")
-os.environ.setdefault("JWT_ALGORITHM", "HS256")
-os.environ.setdefault("JWT_EXPIRE_MINUTES", "60")
-os.environ.setdefault("PWD_ROUNDS", "100_000")
+os.environ["APP_ENV"] = "test"
+os.environ["DB_DRIVER"] = "sqlite"
+os.environ["DB_NAME"] = ":memory:"
+os.environ["JWT_SECRET"] = "test-secret-key"
+os.environ["JWT_ALGORITHM"] = "HS256"
+os.environ["JWT_EXPIRE_MINUTES"] = "60"
+os.environ["PWD_ROUNDS"] = "100_000"
 
-import pytest
-from app.dal.database_manager import database_manager
-from app.models.base import Base
+import pytest  # noqa: E402
+from app.models.base import Base  # noqa: E402
+from app.dal.database_manager import database_manager  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
