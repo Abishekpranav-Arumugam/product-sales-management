@@ -17,7 +17,9 @@ class ProductInterface(ABC):
         pass
 
     @abstractmethod
-    def update_product(self, product_id: int, product_data: dict[str, Any]) -> Any:
+    def update_product(
+        self, product_id: int, product_data: dict[str, Any]
+    ) -> Any:
         pass
 
     @abstractmethod

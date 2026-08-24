@@ -18,7 +18,7 @@ app.include_router(auth_router)
 
 
 @app.get("/", tags=["System"])
-def root():
+def root() -> dict[str, str]:
 
     return {"message": "Product Management API is running"}
 

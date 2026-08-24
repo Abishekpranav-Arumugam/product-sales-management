@@ -7,7 +7,7 @@ from app.models.product_model import Product
 
 class ProductDAL:
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     # ========================================================
@@ -82,7 +82,9 @@ class ProductDAL:
     # UPDATE PRODUCT QUANTITY
     # ========================================================
 
-    def update_quantity(self, product_id: int, quantity: int) -> Optional[Product]:
+    def update_quantity(
+        self, product_id: int, quantity: int
+    ) -> Optional[Product]:
 
         product = self.get_by_id(product_id)
 

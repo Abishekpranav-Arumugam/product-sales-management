@@ -15,13 +15,19 @@ class UserRegister(BaseModel):
         if len(value) < 8:
             raise ValueError("Password must be at least 8 characters long")
         if not re.search(r"[A-Z]", value):
-            raise ValueError("Password must contain at least one uppercase letter")
+            raise ValueError(
+                "Password must contain at least one uppercase letter")
         if not re.search(r"\d", value):
-            raise ValueError("Password must contain at least one numeric character")
+            raise ValueError(
+                "Password must contain at least one numeric character")
         if not re.search(r"[@_#]", value):
-            raise ValueError("Password must contain at least one of these special characters: @, _, #")
+            raise ValueError(
+                "Password must contain at least "
+                "one of these special characters: @, _, #")
         if not re.fullmatch(r"[A-Za-z0-9@_#]+", value):
-            raise ValueError("Password contains invalid characters. Only letters, numbers, @, _, and # are allowed")
+            raise ValueError(
+                "Password contains invalid characters."
+                "Only letters, numbers, @, _, and # are allowed")
         return value
 
 
@@ -35,13 +41,19 @@ class UserLogin(BaseModel):
         if len(value) < 8:
             raise ValueError("Password must be at least 8 characters long")
         if not re.search(r"[A-Z]", value):
-            raise ValueError("Password must contain at least one uppercase letter")
+            raise ValueError(
+                "Password must contain at least one uppercase letter")
         if not re.search(r"\d", value):
-            raise ValueError("Password must contain at least one numeric character")
+            raise ValueError(
+                "Password must contain at least one numeric character")
         if not re.search(r"[@_#]", value):
-            raise ValueError("Password must contain at least one of these special characters: @, _, #")
+            raise ValueError(
+                "Password must contain at least "
+                "one of these special characters: @, _, #")
         if not re.fullmatch(r"[A-Za-z0-9@_#]+", value):
-            raise ValueError("Password contains invalid characters. Only letters, numbers, @, _, and # are allowed")
+            raise ValueError(
+                "Password contains invalid characters."
+                " Only letters, numbers, @, _, and # are allowed")
         return value
 
 

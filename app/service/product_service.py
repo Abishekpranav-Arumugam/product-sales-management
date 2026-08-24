@@ -2,7 +2,8 @@ from typing import Any
 from app.transaction.prod_interface import ProductInterface
 from app.dal.product_dal import ProductDAL
 from app.service.database_service import database_service
-
+from app.utils.logger import get_logger
+logger = get_logger(__name__)
 
 class ProductService(ProductInterface):
 
@@ -13,6 +14,14 @@ class ProductService(ProductInterface):
             product_dal = ProductDAL(db)
             product = product_dal.insert(product_data)
             db.commit()
+            logger.info(
+                "Product created successfully",
+                extra={
+                    "product_id": product.id,
+                    "product_name": product.name,
+                    "category": product.category
+                }
+            )
             return product
 
         except Exception:
@@ -44,7 +53,9 @@ class ProductService(ProductInterface):
 
             db.close()
 
-    def update_product(self, product_id: int, product_data: dict[str, Any]) -> Any:
+    def update_product(
+        self, product_id: int, product_data: dict[str, Any]
+    ) -> Any:
 
         db = database_service.create_session()
 
@@ -56,6 +67,10 @@ class ProductService(ProductInterface):
 
             if product is not None:
                 db.commit()
+                logger.info(
+                    "Product updated successfully",
+                    extra={"product_id": product_id}
+                )
             else:
                 db.rollback()
 
@@ -83,8 +98,16 @@ class ProductService(ProductInterface):
 
             if deleted:
                 db.commit()
+                logger.info(
+                    "Product deleted successfully",
+                    extra={"product_id": product_id}
+                )
             else:
                 db.rollback()
+                logger.warning(
+                    "Product deletion failed: Product not found",
+                    extra={"product_id": product_id}
+                )
 
             return deleted
 

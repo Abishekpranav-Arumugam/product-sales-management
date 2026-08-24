@@ -7,7 +7,7 @@ from app.models.user_model import User
 
 class UserDAL:
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def insert(self, user_data: dict[str, Any]) -> User:

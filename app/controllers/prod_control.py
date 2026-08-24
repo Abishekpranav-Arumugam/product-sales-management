@@ -1,3 +1,4 @@
+from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.schemas.product_schema import ProductCreate, ProductUpdate
@@ -13,12 +14,17 @@ def get_product_service() -> ProductService:
     return ProductService()
 
 
-@router.post("/", response_model=ProductResponse, summary="Create Product", description="Create a new product.")
+@router.post(
+    "/",
+    response_model=ProductResponse,
+    summary="Create Product",
+    description="Create a new product."
+)
 def add_product(
     product_data: ProductCreate,
     service: ProductService = Depends(get_product_service),
-    current_user=Depends(require_supervisor),
-):
+    current_user: Any = Depends(require_supervisor),
+) -> Any:
 
     try:
 
@@ -29,11 +35,16 @@ def add_product(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/", response_model=list[ProductResponse], summary="Get All Products", description="Returns all products.")
+@router.get(
+    "/",
+    response_model=list[ProductResponse],
+    summary="Get All Products",
+    description="Returns all products."
+)
 def get_all_products(
     service: ProductService = Depends(get_product_service),
-    current_user=Depends(require_supervisor),
-):
+    current_user: Any = Depends(require_supervisor),
+) -> list[Any]:
 
     return service.get_all_products()
 
@@ -47,8 +58,8 @@ def get_all_products(
 def get_product(
     product_id: int,
     service: ProductService = Depends(get_product_service),
-    current_user=Depends(require_supervisor),
-):
+    current_user: Any = Depends(require_supervisor),
+) -> Any:
 
     product = service.get_product(product_id)
 
@@ -69,8 +80,8 @@ def update_product(
     product_id: int,
     product_data: ProductUpdate,
     service: ProductService = Depends(get_product_service),
-    current_user=Depends(require_supervisor),
-):
+    current_user: Any = Depends(require_supervisor),
+) -> Any:
 
     try:
 
@@ -98,8 +109,8 @@ def update_product(
 def delete_product(
     product_id: int,
     service: ProductService = Depends(get_product_service),
-    current_user=Depends(require_supervisor),
-):
+    current_user: Any = Depends(require_supervisor),
+) -> dict[str, Any]:
 
     try:
 
@@ -107,9 +118,15 @@ def delete_product(
 
         if not deleted:
 
-            raise HTTPException(status_code=404, detail="Product not found")
+            raise HTTPException(
+                status_code=404,
+                detail="Product not found"
+            )
 
-        return {"message": "Product deleted successfully", "product_id": product_id}
+        return {
+            "message": "Product deleted successfully",
+            "product_id": product_id
+        }
 
     except HTTPException:
         raise
