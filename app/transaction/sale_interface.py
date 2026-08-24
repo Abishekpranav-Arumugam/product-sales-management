@@ -15,3 +15,7 @@ class SaleInterface(ABC):
     @abstractmethod
     def get_sale_by_id(self, sale_id: int) -> Optional[Any]:
         pass
+
+    @abstractmethod
+    def generate_sales_report(self) -> str:
+        pass
