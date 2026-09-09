@@ -35,3 +35,14 @@ class Product(Base):
         "Sale",
         back_populates="product",
     )
+
+    product_suppliers = relationship(
+        "ProductSupplier",
+        back_populates="product",
+        cascade="all, delete-orphan"
+    )
+
+    purchases = relationship(
+        "Purchase",
+        back_populates="product"
+    )

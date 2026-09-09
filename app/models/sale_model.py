@@ -31,3 +31,8 @@ class Sale(Base):
         "Product",
         back_populates="sales",
     )
+
+    selling_price: Mapped[Decimal] = mapped_column(
+       Numeric(12, 2),
+        nullable=True
+    )
