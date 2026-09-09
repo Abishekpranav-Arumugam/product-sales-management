@@ -84,6 +84,8 @@ class DatabaseManager:
             self.engine = create_engine(
                 database_url,
                 pool_pre_ping=True,
+                pool_size=100,
+                max_overflow=100, 
                 echo=False,
             )
 
@@ -112,6 +114,5 @@ class DatabaseManager:
                     "ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'"
                 )
             )
-
 
 database_manager = DatabaseManager()
