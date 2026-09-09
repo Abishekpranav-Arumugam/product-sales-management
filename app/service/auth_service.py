@@ -11,6 +11,11 @@ from app.security import jwt as jwt_util
 
 PBKDF2_ROUNDS = int(os.getenv("PWD_ROUNDS", "100_000"))
 
+class StatelessUser:
+    def __init__(self, user_id: int, email: str, role: str):
+        self.id = user_id
+        self.email = email
+        self.role = role
 
 class AuthService:
 
@@ -58,12 +63,26 @@ class AuthService:
             db.commit()
             logger.info(
                 "New user registered",
-                extra={"user_id": user.id, "email": email, "role": role}
+                extra={"user_id": user.id}
             )
             return user
-        except Exception:
+
+        except ValueError as e:
             db.rollback()
+            logger.warning(
+                "Registration failed due to business logic validation",
+                extra={"email": email, "error": str(e)}
+            )
             raise
+
+        except Exception as e:
+            db.rollback()
+            logger.error(
+                "Registration failed due to database or system error",
+                extra={"email": email, "error": str(e)}
+            )
+            raise
+
         finally:
             db.close()
 
@@ -73,10 +92,6 @@ class AuthService:
             user_dal = UserDAL(db)
             user = user_dal.get_by_email(email)
             if user is None:
-                logger.warning(
-                    "Authentication failed: User not found",
-                    extra={"email": email}
-                )
                 return None
             try:
                 salt_hex, hashed = user.hashed_password.split("$", 1)
@@ -85,21 +100,26 @@ class AuthService:
                 return None
 
             if not self._verify_password(password, hashed, salt):
-                logger.warning(
-                    "Authentication failed: Incorrect password",
-                    extra={"email": email}
-                )
                 return None
+
             logger.info(
                 "User authenticated successfully",
-                extra={"user_id": user.id, "email": email}
+                extra={"user_id": user.id}
             )
             return user
+
+        except ValueError as e:
+            logger.warning(
+                "Authentication failed",
+                extra={"email": email, "error": str(e)}
+            )
+            return None
+        
         finally:
             db.close()
 
-    def create_token_for_user(self, user_id: int, email: str) -> str:
-        payload = {"sub": email, "user_id": user_id}
+    def create_token_for_user(self,user_id:int,email:str,role:str)->str:
+        payload = {"sub": email, "user_id": user_id, "role": role}
         return jwt_util.create_access_token(payload)
 
     def get_user_from_token(self, token: str) -> Any:
@@ -115,15 +135,21 @@ class AuthService:
             return None
 
         email = decoded.get("sub")
-        if not email:
+        user_id = decoded.get("user_id")
+        role = decoded.get("role", "user")
+
+        if not email or not user_id:
             return None
 
-        db = database_service.create_session()
-        try:
-            user_dal = UserDAL(db)
-            return user_dal.get_by_email(email)
-        finally:
-            db.close()
+        return StatelessUser(user_id=user_id, email=email, role=role)
+
+        # Bypassing the sessions
+        # db = database_service.create_session()
+        # try:
+        #     user_dal = UserDAL(db)
+        #     return user_dal.get_by_email(email)
+        # finally:
+        #     db.close()
 
 
 auth_service = AuthService()

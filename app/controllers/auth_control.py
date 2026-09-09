@@ -26,7 +26,10 @@ def register_user(payload: UserRegister) -> dict[str, Any]:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc)) from exc
 
-    token = auth_service.create_token_for_user(user.id, user.email)
+    token = auth_service.create_token_for_user(
+        user.id, user.email, user.role
+    )
+
     return {
         "user": {
             "id": user.id,
@@ -47,7 +50,10 @@ def login_user(payload: UserLogin) -> dict[str, Any]:
             detail="Invalid email or password",
         )
 
-    token = auth_service.create_token_for_user(user.id, user.email)
+    token = auth_service.create_token_for_user(
+        user.id, user.email, user.role
+    )
+
     return {
         "user": {
             "id": user.id,
@@ -73,5 +79,7 @@ def create_token(payload: UserLogin) -> dict[str, str]:
             detail="Invalid email or password",
         )
 
-    token = auth_service.create_token_for_user(user.id, user.email)
+    token = auth_service.create_token_for_user(
+        user.id, user.email, user.role
+    )
     return {"access_token": token, "token_type": "bearer"}
