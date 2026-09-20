@@ -1,0 +1,14 @@
+fastapi==0.141.1
+uvicorn[standard]==0.27.0
+SQLAlchemy==2.0.52
+psycopg[binary]
+pydantic==2.13.4
+PyJWT==2.10.1
+python-dotenv==1.2.3
+cryptography==46.0.3
+pytest==9.1.1
+httpx==0.28.1
+aiokafka==0.12.0
+joblib
+pandas
+scikit-learn
