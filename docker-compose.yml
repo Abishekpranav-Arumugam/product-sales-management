@@ -59,6 +59,34 @@ services:
     networks:
       - app-network
 
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: product-sales-web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DB_DRIVER: ${DB_DRIVER:-postgresql+psycopg}
+      DB_USER: ${DB_USER:-product_app}
+      DB_PASSWORD: ${DB_PASSWORD:-change-me}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-product_db}
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-60}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:29092}
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+
 volumes:
   db_data:
   zookeeper_data:
