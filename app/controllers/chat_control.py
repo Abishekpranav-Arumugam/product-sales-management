@@ -3,6 +3,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.schemas.chat_schema import ChatRequest, ChatResponse
+from app.security.dependencies import require_supervisor
 from app.service.chat_service import ChatService
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
@@ -20,11 +21,15 @@ def get_chat_service() -> ChatService:
         "Understand natural-language sales questions and return a "
         "friendly answer."
     ),
-    responses={500: {"description": "Internal server error"}},
+    responses={
+        400: {"description": "Invalid chat request"},
+        500: {"description": "Internal server error"},
+    },
 )
 def ask_chatbot(
     payload: ChatRequest,
     service: Annotated[ChatService, Depends(get_chat_service)],
+    current_user: Annotated[Any, Depends(require_supervisor)],
 ) -> dict[str, Any]:
     try:
         return service.process_user_query(payload.message)

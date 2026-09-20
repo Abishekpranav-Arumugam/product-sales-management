@@ -47,7 +47,6 @@ def test_create_user_rejects_duplicate_email(monkeypatch) -> None:
     except ValueError as exc:
         assert str(exc) == "Email already exists"
 
-
 def test_authenticate_user_success_and_failure(monkeypatch) -> None:
     service = AuthService()
     email = "auth@example.com"
@@ -62,6 +61,7 @@ def test_authenticate_user_success_and_failure(monkeypatch) -> None:
         def get_by_email(self, value):
             if value == email:
                 class User:
+                    id = 1  # Added mock id attribute to satisfy the logger
                     hashed_password = stored
                 return User()
             return None

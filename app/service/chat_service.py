@@ -1,13 +1,103 @@
-# 1. What are the total sales?
-# 2. How much are the sales today?
-# 3. What are the sales for this month?
-# 4. How much did we sell this week?
-# 5. What were yesterday's sales?
-# 6. How much did Biscuit sell this month?
-# 7. What were the sales in August?
-# 8. Compare this month and last month.
-# 9. What is the sales trend?
-# 10. What is the average sale value?
+# =============================================================================
+# CHATBOT SUPPORTED QUERIES — COMPLETE REFERENCE
+# Each handler is triggered by the keywords shown. Queries MUST be lowercase.
+# =============================================================================
+#
+# ── 1. TOTAL SALES  (_handle_total_sales_query) ──────────────────────────────
+#    Keywords: "total sales" | "total revenue" | "total amount" | "how much" + "sales"
+#
+#    "What are the total sales?"
+#    "Show me the total revenue."
+#    "What is the total amount from sales?"
+#    "How much sales have we made?"
+#    "How much is the total sales so far?"
+#    "Give me the total sales."
+#
+#    Special — TODAY only (contains "today"):
+#    "What are the total sales today?"
+#    "How much did we sell today?"
+#    "What is today's total sales?"
+#
+# ── 2. MONTHLY SALES  (_handle_monthly_sales_query) ──────────────────────────
+#    Keywords: "monthly sales" | ("this" + "month" + "sales") | ("last" + "month" + "sales")
+#             | (any month name + "month" + "sales")
+#
+#    "What are the monthly sales?"
+#    "What are the sales for this month?"
+#    "Show me this month's sales."
+#    "How much did we sell this month?"
+#    "What are the sales last month?"        ← only if "compare" is NOT in the question
+#
+# ── 3. PREVIOUS MONTH SALES  (_handle_previous_month_sales_query) ────────────
+#    Keywords: ("previous month" | "last month") + "sales"
+#    NOTE: "compare" must NOT be in the question (compare takes priority)
+#
+#    "What were last month's sales?"
+#    "Show me previous month sales."
+#    "What are the sales for last month?"
+#    "How much did we sell last month?"
+#    "What were the previous month sales?"
+#
+# ── 4. WEEKLY SALES  (_handle_weekly_sales_query) ────────────────────────────
+#    Keywords: "this week" | "week"
+#
+#    "What are the sales this week?"
+#    "How much did we sell this week?"
+#    "Show me the weekly sales."
+#    "What are the week's sales?"
+#    "Give me this week's revenue."
+#
+# ── 5. YESTERDAY SALES  (_handle_yesterday_sales_query) ──────────────────────
+#    Keywords: "yesterday"
+#
+#    "What were yesterday's sales?"
+#    "How much did we sell yesterday?"
+#    "Show me yesterday's revenue."
+#    "What is the sales total for yesterday?"
+#
+# ── 6. PRODUCT SALES  (_handle_product_sales_query) ──────────────────────────
+#    Keywords: "sold" | "sales for" | "sales of" | "product"
+#    NOTE: Product name must match a name in the database (case-insensitive substring).
+#    Returns THIS MONTH's sales for the named product.
+#
+#    "What are the sales for Wireless Mouse?"
+#    "How much did HP Pavillion sell?"
+#    "Sales of Notebook this month."
+#    "How many units were sold for Mechanical Keyboard?"
+#    "What is the sales for Potato Chips?"
+#    "Show me the sales of USB-C Charger."
+#
+#
+# ── 8. SALES COMPARISON  (_handle_sales_comparison_query) ────────────────────
+#    Keywords: "compare" + ("this month" | "last month")
+#
+#    "Compare this month and last month."
+#    "Compare last month with this month."
+#    "Can you compare this month's sales to last month?"
+#    "Compare sales this month vs last month."
+#
+#
+# ── 11. SALES FORECAST  (_handle_sales_forecast_query) ───────────────────────
+#    Keywords: ("next month" | "future" | "forecast") + ("sales" | "demand" | "units")
+#    NOTE: Product name OR product ID must be included in the question.
+#
+#    Using product name (must match DB name, case-insensitive substring):
+#    "What is the forecast for Biscuit?"
+#    "Forecast sales for Wireless Mouse next month."
+#    "What is the future demand for HP Pavillion?"
+#    "How many units will Notebook sell next month?"
+#    "Predict next month sales for Potato Chips."
+#    "What is the forecast demand for Mechanical Keyboard?"
+#    "Future sales for USB-C Charger."
+#    "Next month demand for Bluetooth Headphones."
+#
+#    Using product ID (any number in the question is tried as product ID first):
+#    "Forecast sales for product 6."
+#    "What is the forecast for product 1?"
+#    "Next month demand for product 11."
+#    "Future units for 7."
+#
+# =============================================================================
 from datetime import datetime, timedelta
 import re
 
@@ -50,10 +140,8 @@ class ChatService:
             "weekly_sales": self._handle_weekly_sales_query,
             "yesterday_sales": self._handle_yesterday_sales_query,
             "product_sales": self._handle_product_sales_query,
-            "filtered_monthly_sales": self._handle_filtered_monthly_query,
             "sales_comparison": self._handle_sales_comparison_query,
-            "sales_trend": self._handle_sales_trend_query,
-            "average_sales": self._handle_average_sales_query,
+
         }
 
         handler = handlers.get(intent)
@@ -100,17 +188,20 @@ class ChatService:
         ):
             return "sales_comparison"
 
-        if "trend" in question:
-            return "sales_trend"
-
-        if "average" in question or "avg" in question:
-            return "average_sales"
 
         if "yesterday" in question:
             return "yesterday_sales"
 
         if "this week" in question or "week" in question:
             return "weekly_sales"
+
+        if (
+            "sold" in question
+            or "sales for" in question
+            or "sales of" in question
+            or "product" in question
+        ):
+            return "product_sales"
 
         if (
             "monthly sales" in question
@@ -134,16 +225,6 @@ class ChatService:
         ):
             return "total_sales"
 
-        if (
-            "sales for" in question
-            or "sales of" in question
-            or "sold" in question
-            or "product" in question
-        ):
-            return "product_sales"
-
-        if "month" in question and "sales" in question:
-            return "filtered_monthly_sales"
 
         return "unsupported"
 
@@ -400,18 +481,12 @@ class ChatService:
     def _handle_product_sales_query(self, question: str) -> dict:
         db: Session = database_service.create_session()
         try:
-            product_name = None
-            for phrase in ["for ", "of ", "product "]:
-                if phrase in question:
-                    try:
-                        product_name = question.split(phrase, 1)[1].strip()
-                        product_name = product_name.split(" ", 1)[0]
-                    except IndexError:
-                        product_name = None
-                    break
-
-            if product_name in {"this", "month", "week", "today", "yesterday"}:
-                product_name = None
+            products = db.query(Product).order_by(Product.name.asc()).all()
+            product = next(
+                (item for item in products if item.name.lower() in question),
+                None,
+            )
+            product_name = product.name if product else None
 
             records = self._get_sales_records(
                 db,
@@ -444,72 +519,6 @@ class ChatService:
         finally:
             db.close()
 
-    def _handle_filtered_monthly_query(self, question: str) -> dict:
-        db: Session = database_service.create_session()
-        try:
-            month_name = None
-            for name in [
-                "january",
-                "february",
-                "march",
-                "april",
-                "may",
-                "june",
-                "july",
-                "august",
-                "september",
-                "october",
-                "november",
-                "december",
-            ]:
-                if name in question:
-                    month_name = name
-                    break
-
-            if month_name is None:
-                month_name = "this month"
-
-            if month_name == "this month":
-                start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                end = start.replace(day=28) + timedelta(days=4)
-                end = end.replace(day=1)
-                label = "this month"
-            else:
-                month_index = [
-                    "january",
-                    "february",
-                    "march",
-                    "april",
-                    "may",
-                    "june",
-                    "july",
-                    "august",
-                    "september",
-                    "october",
-                    "november",
-                    "december",
-                ].index(month_name) + 1
-                year = datetime.now().year
-                start = datetime(year, month_index, 1)
-                end = datetime(year, month_index % 12 + 1, 1) if month_index < 12 else datetime(year + 1, 1, 1)
-                label = month_name.title()
-
-            records = self._get_sales_records(db, start=start, end=end)
-            total_amount = sum(float(item.total_amount) for item in records)
-
-            response = (
-                f"The sales for {label} were {self._to_currency(total_amount)}."
-            )
-
-            return {
-                "intent": "filtered_monthly_sales",
-                "period": label,
-                "total_amount": float(total_amount),
-                "response": response,
-                "records": len(records),
-            }
-        finally:
-            db.close()
 
     def _handle_sales_comparison_query(self, question: str) -> dict:
         db: Session = database_service.create_session()
@@ -549,73 +558,6 @@ class ChatService:
                 "total_amount": float(current_total),
                 "response": response,
                 "records": len(current_records),
-            }
-        finally:
-            db.close()
-
-    def _handle_sales_trend_query(self, question: str) -> dict:
-        db: Session = database_service.create_session()
-        try:
-            now = datetime.now()
-            month_totals = []
-
-            for index in range(6):
-                month_start = now.replace(day=1)
-                month_start = month_start.replace(
-                    month=((now.month - index - 1) % 12) + 1,
-                    year=now.year if now.month - index > 1 else now.year - 1,
-                )
-                month_end = (
-                    datetime(month_start.year, month_start.month % 12 + 1, 1)
-                    if month_start.month < 12
-                    else datetime(month_start.year + 1, 1, 1)
-                )
-                records = self._get_sales_records(
-                    db, start=month_start, end=month_end
-                )
-                month_totals.append(sum(float(item.total_amount) for item in records))
-
-            current_total = month_totals[0]
-            previous_total = month_totals[1] if len(month_totals) > 1 else 0.0
-            trend = "increasing" if current_total >= previous_total else "decreasing"
-            response = (
-                f"Sales trend is {trend}. This month is "
-                f"{self._to_currency(current_total)} and the previous month was "
-                f"{self._to_currency(previous_total)}."
-            )
-
-            return {
-                "intent": "sales_trend",
-                "period": "last_six_months",
-                "total_amount": float(current_total),
-                "response": response,
-                "records": len(month_totals),
-            }
-        finally:
-            db.close()
-
-    def _handle_average_sales_query(self, question: str) -> dict:
-        db: Session = database_service.create_session()
-        try:
-            now = datetime.now()
-            records = self._get_sales_records(db)
-            if not records:
-                total = 0.0
-                avg = 0.0
-            else:
-                total = sum(float(item.total_amount) for item in records)
-                avg = total / len(records)
-
-            response = (
-                f"The average sale value is {self._to_currency(avg)}."
-            )
-
-            return {
-                "intent": "average_sales",
-                "period": "all_time",
-                "total_amount": float(avg),
-                "response": response,
-                "records": len(records),
             }
         finally:
             db.close()

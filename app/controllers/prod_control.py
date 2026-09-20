@@ -4,7 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.product_schema import ProductCreate, ProductUpdate
 from app.service.product_service import ProductService
 from app.schemas.product_schema import ProductResponse
-from app.security.dependencies import require_supervisor
+from app.security.dependencies import (
+    require_authenticated_user,
+    require_supervisor,
+)
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -43,7 +46,7 @@ def add_product(
 )
 def get_all_products(
     service: ProductService = Depends(get_product_service),
-    current_user: Any = Depends(require_supervisor),
+    current_user: Any = Depends(require_authenticated_user),
 ) -> list[Any]:
 
     return service.get_all_products()
@@ -58,7 +61,7 @@ def get_all_products(
 def get_product(
     product_id: int,
     service: ProductService = Depends(get_product_service),
-    current_user: Any = Depends(require_supervisor),
+    current_user: Any = Depends(require_authenticated_user),
 ) -> Any:
 
     product = service.get_product(product_id)
@@ -130,6 +133,9 @@ def delete_product(
 
     except HTTPException:
         raise
+
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e
 
     except Exception as e:
 

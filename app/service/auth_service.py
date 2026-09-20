@@ -118,7 +118,9 @@ class AuthService:
         finally:
             db.close()
 
-    def create_token_for_user(self,user_id:int,email:str,role:str)->str:
+    def create_token_for_user(
+        self, user_id: int, email: str, role: str = "user"
+    ) -> str:
         payload = {"sub": email, "user_id": user_id, "role": role}
         return jwt_util.create_access_token(payload)
 

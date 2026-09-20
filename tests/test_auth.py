@@ -112,8 +112,17 @@ def test_role_based_endpoint_access() -> None:
 
     assert client.get("/products/").status_code == 401
     assert client.get("/sales/").status_code == 401
-    assert client.get("/products/", headers=user_headers).status_code == 403
-    assert client.get("/sales/", headers=user_headers).status_code == 200
+    assert client.get("/products/", headers=user_headers).status_code == 200
+    assert client.get("/sales/", headers=user_headers).status_code == 403
+    assert client.post(
+        "/chat/",
+        json={"message": "What were this month's sales?"},
+        headers=user_headers,
+    ).status_code == 403
+    assert client.get(
+        "/sales/report", headers=user_headers).status_code == 403
     assert client.get(
         "/products/", headers=supervisor_headers).status_code == 200
     assert client.get("/sales/", headers=supervisor_headers).status_code == 200
+    assert client.get(
+        "/sales/report", headers=supervisor_headers).status_code == 200

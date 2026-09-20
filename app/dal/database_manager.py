@@ -13,8 +13,13 @@ from app.models.user_model import User  # noqa: F401
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
+
+def resolve_env_file() -> Path:
+    return BASE_DIR / ".env"
+
+
 load_dotenv(
-    dotenv_path=BASE_DIR / ".env",
+    dotenv_path=resolve_env_file(),
     override=False,
 )
 

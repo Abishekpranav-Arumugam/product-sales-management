@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: product_db
       POSTGRES_USER: product_app
-      POSTGRES_PASSWORD: Abishek@2004
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me}
     ports:
       - "5433:5432"
     volumes:
@@ -26,6 +26,9 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
     networks:
       - app-network
 
@@ -33,7 +36,8 @@ services:
     image: confluentinc/cp-kafka:7.4.0
     container_name: kafka
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_started
     ports:
       - "9092:9092"
     environment:
@@ -43,52 +47,23 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
     networks:
       - app-network
 
-  web:
-    build: .
-    depends_on:
-      db:
-        condition: service_healthy
-    env_file:
-      - .env
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: product_app
-      DB_PASSWORD: Abishek@2004
-      DB_NAME: product_db
-      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
-  consumer:
-    build: .
-    restart: always
-    depends_on:
-      db:
-        condition: service_healthy
-      kafka:
-        condition: service_started
-    env_file:
-      - .env
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: product_app
-      DB_PASSWORD: Abishek@2004
-      DB_NAME: product_db
-      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-    volumes:
-      - .:/app
-    command: python run_consumer.py
-
 volumes:
   db_data:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_data:
 
 networks:
   app-network:

@@ -121,6 +121,16 @@ class SaleService(SaleInterface):
         finally:
             db.close()
 
+    def get_sales_page(
+        self, page: int, page_size: int
+    ) -> tuple[list[Any], int]:
+        db = database_service.create_session()
+        try:
+            sale_dal = SaleDAL(db)
+            return sale_dal.get_page(page, page_size)
+        finally:
+            db.close()
+
     def get_sale_by_id(self, sale_id: int) -> Any:
         db = database_service.create_session()
         try:

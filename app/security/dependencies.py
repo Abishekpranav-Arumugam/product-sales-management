@@ -45,3 +45,14 @@ def require_supervisor(
             detail="Supervisor access required",
         )
     return current_user
+
+
+def require_user(
+    current_user: Any = Depends(get_current_user)
+) -> Any:
+    if current_user.role != "user":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User access required",
+        )
+    return current_user

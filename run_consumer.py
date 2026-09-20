@@ -9,9 +9,8 @@ from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 KAFKA_BOOTSTRAP_SERVERS = os.getenv(
-    "KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"
+    "KAFKA_BOOTSTRAP_SERVERS", "kafka:29092"
 )
-
 
 async def consume_sales():
     consumer = AIOKafkaConsumer(

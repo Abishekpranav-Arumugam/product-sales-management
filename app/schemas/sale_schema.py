@@ -19,3 +19,11 @@ class SaleResponse(BaseModel):
     product_id: int
     quantity: int
     total_amount: Decimal
+
+
+class SalePageResponse(BaseModel):
+
+    items: list[SaleResponse]
+    page: int
+    page_size: int
+    total: int

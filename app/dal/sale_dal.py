@@ -62,6 +62,17 @@ class SaleDAL:
 
         return sales
 
+    def get_page(self, page: int, page_size: int) -> tuple[list[Sale], int]:
+        query = self.db.query(Sale)
+        total = query.count()
+        sales = (
+            query.order_by(Sale.created_at.desc(), Sale.id.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+            .all()
+        )
+        return sales, total
+
     # ========================================================
     # GET SALE BY ID
     # ========================================================

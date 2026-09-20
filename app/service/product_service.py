@@ -19,7 +19,7 @@ class ProductService(ProductInterface):
             )
             return product
 
-        except Exception:
+        except Exception as e:
             db.rollback()
             logger.error(
                 "Failed to add product due to database or validation error",
@@ -71,7 +71,7 @@ class ProductService(ProductInterface):
                 )
             return product
 
-        except Exception:
+        except Exception as e:
             db.rollback()
             logger.error(
                 "Failed to update product due to system or database error",
@@ -87,6 +87,22 @@ class ProductService(ProductInterface):
 
         try:
             product_dal = ProductDAL(db)
+            product = product_dal.get_by_id(product_id)
+
+            if product is None:
+                return False
+
+            if product.sales:
+                message = (
+                    "Cannot delete a product with recorded sales. "
+                    "Update its quantity instead."
+                )
+                logger.warning(
+                    "Product deletion blocked by recorded sales",
+                    extra={"product_id": product_id},
+                )
+                raise ValueError(message)
+
             deleted = product_dal.delete(product_id)
 
             if deleted:
@@ -103,7 +119,11 @@ class ProductService(ProductInterface):
                 )
             return deleted
 
-        except Exception:
+        except ValueError:
+            db.rollback()
+            raise
+
+        except Exception as e:
             db.rollback()
             logger.error(
                 "Failed to delete product due to database error",

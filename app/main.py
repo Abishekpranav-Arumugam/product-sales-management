@@ -23,6 +23,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Keep compatibility with both uvicorn startup styles:
+# uvicorn app.main:app --reload
+# uvicorn app.main:main --reload
+main = app
+
 app.include_router(product_router)
 app.include_router(sale_router)
 app.include_router(auth_router)

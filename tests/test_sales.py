@@ -1,9 +1,12 @@
+import asyncio
+
 from fastapi.testclient import TestClient
 from decimal import Decimal
 
 from app.main import app
 from app.controllers.sale_control import get_sale_service
 from app.controllers.prod_control import get_product_service
+from app.utils.kafka_producer import kafka_producer_client
 
 
 class FakeProductService:
@@ -47,7 +50,7 @@ class FakeSaleService:
         self._sales = {}
         self._id = 1
 
-    def create_sale(self, sale_data: dict):
+    def process_sale_queue(self, sale_data: dict):
         product = self._product_service.get_product(sale_data["product_id"])
         if product is None:
             raise ValueError("Product not found")
@@ -57,18 +60,26 @@ class FakeSaleService:
         total_amount = Decimal(str(product["price"])) * sale_data["quantity"]
         product["quantity"] = product["quantity"] - sale_data["quantity"]
 
-        sale = {
+        event = {
             "id": self._id,
             "product_id": sale_data["product_id"],
             "quantity": sale_data["quantity"],
-            "total_amount": total_amount,
+            "remaining_quantity": product["quantity"],
+            "total_amount": float(total_amount),
+            "selling_price": float(product["price"]),
         }
-        self._sales[self._id] = sale
+        self._sales[self._id] = event
         self._id += 1
-        return sale
+        return event
 
     def get_all_sales(self):
         return list(self._sales.values())
+
+    def get_sales_page(self, page: int, page_size: int):
+        all_sales = list(self._sales.values())
+        start = (page - 1) * page_size
+        end = start + page_size
+        return all_sales[start:end], len(all_sales)
 
     def get_sale(self, sale_id: int):
         return self._sales.get(sale_id)
@@ -81,6 +92,17 @@ def setup_module() -> None:
     app.dependency_overrides[
         get_product_service] = lambda: fake_product_service
     app.dependency_overrides[get_sale_service] = lambda: fake_sale_service
+
+    async def fake_send_event(topic: str, message: dict):
+        class Metadata:
+            def __init__(self):
+                self.topic = topic
+                self.partition = 0
+                self.offset = 0
+
+        return asyncio.sleep(0, result=Metadata())
+
+    kafka_producer_client.send_event = fake_send_event
 
 
 client = TestClient(app)
@@ -119,10 +141,9 @@ def test_create_sale_success() -> None:
 
     sale_payload = {"product_id": 1, "quantity": 3}
     resp = client.post("/sales/", json=sale_payload, headers=user)
-    assert resp.status_code == 200
+    assert resp.status_code == 202
     body = resp.json()
-    assert body["product_id"] == 1
-    assert body["quantity"] == 3
+    assert body["status"] == "Accepted"
 
 
 def test_create_sale_insufficient_stock() -> None:
@@ -143,14 +164,17 @@ def test_create_sale_product_not_found() -> None:
 
 
 def test_get_all_sales() -> None:
-    user = auth_headers("sale-user-4@example.com", "user")
-    resp = client.get("/sales/", headers=user)
+    supervisor = auth_headers("sale-supervisor-4@example.com", "supervisor")
+    resp = client.get("/sales/", headers=supervisor)
     assert resp.status_code == 200
-    arr = resp.json()
-    assert isinstance(arr, list)
+    body = resp.json()
+    assert isinstance(body["items"], list)
+    assert body["page"] == 1
+    assert body["page_size"] == 100
+    assert body["total"] >= len(body["items"])
 
 
 def test_get_missing_sale_returns_404() -> None:
-    user = auth_headers("sale-user-5@example.com", "user")
-    resp = client.get("/sales/9999", headers=user)
+    supervisor = auth_headers("sale-supervisor-5@example.com", "supervisor")
+    resp = client.get("/sales/9999", headers=supervisor)
     assert resp.status_code == 404
