@@ -45,15 +45,25 @@ class DatabaseManager:
         port = os.getenv("DB_PORT")
         database = os.getenv("DB_NAME")
 
-        required_variables = {
-            "APP_ENV": app_env,
-            "DB_DRIVER": driver,
-            "DB_USER": db_user,
-            "DB_PASSWORD": password,
-            "DB_HOST": host,
-            "DB_PORT": port,
-            "DB_NAME": database,
-        }
+        # In test mode only APP_ENV + DB_DRIVER are needed;
+        # the connection URL is hardcoded to SQLite :memory:
+        is_test = app_env and app_env.lower() == "test"
+
+        if is_test:
+            required_variables = {
+                "APP_ENV": app_env,
+                "DB_DRIVER": driver,
+            }
+        else:
+            required_variables = {
+                "APP_ENV": app_env,
+                "DB_DRIVER": driver,
+                "DB_USER": db_user,
+                "DB_PASSWORD": password,
+                "DB_HOST": host,
+                "DB_PORT": port,
+                "DB_NAME": database,
+            }
 
         missing_variables = [
             name
