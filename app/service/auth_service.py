@@ -2,20 +2,24 @@ import os
 import hashlib
 import binascii
 from typing import Any
+
 from app.utils.logger import get_logger
-logger = get_logger(__name__)
 from app.dal.user_dal import UserDAL
 from app.service.database_service import database_service
 from app.security import jwt as jwt_util
 
+logger = get_logger(__name__)
+
 
 PBKDF2_ROUNDS = int(os.getenv("PWD_ROUNDS", "100_000"))
+
 
 class StatelessUser:
     def __init__(self, user_id: int, email: str, role: str):
         self.id = user_id
         self.email = email
         self.role = role
+
 
 class AuthService:
 
@@ -114,7 +118,7 @@ class AuthService:
                 extra={"email": email, "error": str(e)}
             )
             return None
-        
+
         finally:
             db.close()
 

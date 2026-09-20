@@ -188,7 +188,6 @@ class ChatService:
         ):
             return "sales_comparison"
 
-
         if "yesterday" in question:
             return "yesterday_sales"
 
@@ -224,7 +223,6 @@ class ChatService:
             or "how much" in question and "sales" in question
         ):
             return "total_sales"
-
 
         return "unsupported"
 
@@ -518,7 +516,6 @@ class ChatService:
             }
         finally:
             db.close()
-
 
     def _handle_sales_comparison_query(self, question: str) -> dict:
         db: Session = database_service.create_session()

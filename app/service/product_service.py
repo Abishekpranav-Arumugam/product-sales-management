@@ -5,6 +5,7 @@ from app.service.database_service import database_service
 from app.utils.logger import get_logger
 logger = get_logger(__name__)
 
+
 class ProductService(ProductInterface):
 
     def add_product(self, product_data: dict[str, Any]) -> Any:

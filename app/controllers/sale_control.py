@@ -109,8 +109,6 @@ async def create_sale_queue(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-
     # @router.post(
     #     "/",
     #     response_model=SaleResponse,
@@ -134,6 +132,7 @@ async def create_sale_queue(
     #     except Exception as e:
 
     #         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get(
     "/report",

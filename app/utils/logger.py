@@ -5,6 +5,7 @@ import os
 from logging.handlers import RotatingFileHandler
 from datetime import datetime, timezone
 
+
 class JsonFormatter(logging.Formatter):
     def format(self, record):
         log_data = {

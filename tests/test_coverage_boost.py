@@ -381,7 +381,7 @@ class TestProductServicePaths:
         try:
             svc = ProductService()
             p = svc.add_product({"name": "X", "description": "d",
-                                  "price": 10.0, "quantity": 5, "category": "c"})
+                                 "price": 10.0, "quantity": 5, "category": "c"})
             assert p.id is not None
         finally:
             restore_db(orig)
@@ -508,7 +508,6 @@ class TestKafkaProducerClient:
 
         asyncio.run(_run())
         assert client.producer is sentinel  # unchanged
-
 
 
 # ─────────────────────────────────────────────────────────────

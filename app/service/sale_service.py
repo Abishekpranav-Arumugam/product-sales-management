@@ -8,6 +8,7 @@ from app.service.database_service import database_service
 from app.utils.logger import get_logger
 logger = get_logger(__name__)
 
+
 class SaleService(SaleInterface):
 
     def process_sale_queue(
